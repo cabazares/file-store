@@ -42,16 +42,17 @@ exports.list = function(req, res) {
     }
     var multi = rclient.multi();
     fileIds.map(function (fileId) {
-      multi.hget(fileId, "filename");
+      multi.hmget([fileId, "filename", "filesize"]);
     });
     multi.exec(function (err, replies) {
       if (err) {
         handleError(err);
       }
-      replies.forEach(function (fileName, index) {
+      replies.forEach(function (data, index) {
         files.push({
           fileId: fileIds[index].replace(toFileKey(''), ''),
-          fileName: fileName
+          fileName: data[0],
+          fileSize: data[1]
         });
       });
       jsonResponse(res, files);
@@ -79,6 +80,7 @@ exports.create = function(req, res) {
   });
   form.on('end', function () {
     var fileName = fileInfo.name;
+    var fileSize = fileInfo.size;
     // insert to redis
     rclient.incr(NEXT_ID);
     rclient.get(NEXT_ID, function(err, fileId) {
@@ -88,7 +90,9 @@ exports.create = function(req, res) {
       // create file entry
       var fileKey = toFileKey(fileId);
       // insert file to hash
-      rclient.hset(fileKey, "filename", fileName,function(err, replies) {
+      rclient.hmset([fileKey,
+                     "filename", fileName,
+                     "filesize", fileSize], function(err, replies) {
         if (err) {
           handleError(err);
         }
@@ -99,7 +103,8 @@ exports.create = function(req, res) {
           }
           jsonResponse(res, {
             fileId: fileId,
-            fileName: fileName
+            fileName: fileName,
+            fileSize: fileSize
           });
         });
       });
@@ -135,7 +140,7 @@ exports.read = function(req, res) {
 exports.delete = function(req, res) {
   var fileId = toFileKey(req.params.id);
   // remove file
-  rclient.hdel(fileId, "filename", function(err, replies) {
+  rclient.hdel([fileId, "filename", "filesize"], function(err, replies) {
     if (err) {
       handleError(err);
     }

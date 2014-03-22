@@ -18,9 +18,12 @@ a {
 #files_box {
   margin: 10px;
   float: left;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 15px;
+  padding: 0px;
+}
+
+#files_box .upload_title {
+  font-weight: bold;
+  font-size: 14px;
 }
 
 #files_list {
@@ -28,7 +31,26 @@ a {
   padding: 0;
 }
 
-#files_box .file_row .remove {
+#files_list .file_row {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  position: relative;
+  padding: 8px;
+  min-width: 200px;
+  margin-bottom: 10px;
+}
+
+#files_list .file_row .size {
+  color: #666;
+}
+
+#files_list .file_row .remove {
   cursor: pointer;
   float: right;
+  position: absolute;
+  top: 11px;
+  right: 10px;
+  padding: 5px;
 }
+
+

@@ -17,12 +17,26 @@ jQuery(function($){
 
       this.model.bind('remove', this.unrender);
     },
+    getFileSizeString: function (fileSizeInBytes) {
+      var i = -1;
+      var byteUnits = [' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
+      do {
+        fileSizeInBytes = fileSizeInBytes / 1024;
+        i++;
+      } while (fileSizeInBytes > 1024);
+      return Math.max(fileSizeInBytes, 0.1).toFixed(1) + byteUnits[i];
+  },
     render: function(){
       var tpl = '<div class="file_row">' +
-                '<span class="name"><%= fileName %></span>' +
+                '<div class="name"><%= fileName %></div>' +
+                '<div class="size"><%= fileSize %></div>' +
                 '<span class="remove">X</span>' +
                 '</div>';
-      $(this.el).html(_.template(tpl, this.model.attributes));
+      var model = this.model;
+      $(this.el).html(_.template(tpl, {
+        fileName: model.get("fileName"),
+        fileSize: this.getFileSizeString(model.get("fileSize"))
+      }));
       return this;
     },
     unrender: function(){

@@ -1,5 +1,6 @@
 var AWS = require('aws-sdk');
 var rclient = require('redis').createClient();
+var formidable = require('formidable');
 
 // constants
 var NEXT_ID = "nextFileId";
@@ -23,7 +24,7 @@ var toFileKey = function(fileId) {
 
 
 /*
- * Update aws configuration
+ * module configuration
  */
 exports.configure = function(config) {
   AWS.config.update(config.aws);
@@ -63,34 +64,48 @@ exports.list = function(req, res) {
  */
 
 exports.create = function(req, res) {
-  var fileName = req.body.filename;
-  // TODO: handle missing filename and file data
-  // TODO: upload to s3
-  // insert to redis
-  rclient.incr(NEXT_ID);
-  rclient.get(NEXT_ID, function(err, fileId) {
-    if (err) {
+  var form = new formidable.IncomingForm();
+  var fileInfo = {};
+  form.on('file', function (name, file) {
+    fileInfo = file;
+    // TODO: upload to s3
+  });
+  form.on('aborted', function() {
+    // TODO:
+    console.log("ABORTED");
+  });
+  form.on('error', function(err) {
       handleError(err);
-    }
-    // create file entry
-    var fileKey = toFileKey(fileId);
-    // insert file to hash
-    rclient.hset(fileKey, "filename", fileName,function(err, replies) {
+  });
+  form.on('end', function () {
+    var fileName = fileInfo.name;
+    // insert to redis
+    rclient.incr(NEXT_ID);
+    rclient.get(NEXT_ID, function(err, fileId) {
       if (err) {
         handleError(err);
       }
-      // add file to list
-      rclient.rpush(GROUP, fileKey, function(err, reply) {
+      // create file entry
+      var fileKey = toFileKey(fileId);
+      // insert file to hash
+      rclient.hset(fileKey, "filename", fileName,function(err, replies) {
         if (err) {
           handleError(err);
         }
-        jsonResponse(res, {
-          fileId: fileId,
-          fileName: fileName
+        // add file to list
+        rclient.rpush(GROUP, fileKey, function(err, reply) {
+          if (err) {
+            handleError(err);
+          }
+          jsonResponse(res, {
+            fileId: fileId,
+            fileName: fileName
+          });
         });
       });
     });
   });
+  form.parse(req);
 };
 
 

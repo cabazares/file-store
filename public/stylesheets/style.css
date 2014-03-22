@@ -40,6 +40,14 @@ a {
   margin-bottom: 10px;
 }
 
+#files_list .file_row .name {
+cursor:pointer;
+}
+
+#files_list .file_row .name:hover {
+color: #3333AA;
+}
+
 #files_list .file_row .size {
   color: #666;
 }

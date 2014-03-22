@@ -10,11 +10,11 @@ jQuery(function($){
   var FileView = Backbone.View.extend({
     tagName: 'li',
     events: {
-      'click span.remove': 'remove'
+      'click span.remove': 'remove',
+      'click div.name': 'download'
     },
     initialize: function() {
-      _.bindAll(this, 'render', 'unrender', 'remove');
-
+      _.bindAll(this, 'render', 'unrender', 'remove', 'download');
       this.model.bind('remove', this.unrender);
     },
     getFileSizeString: function (fileSizeInBytes) {
@@ -39,10 +39,13 @@ jQuery(function($){
       }));
       return this;
     },
-    unrender: function(){
+    unrender: function() {
       $(this.el).remove();
     },
-    remove: function(){
+    download: function () {
+      window.location = API_URL + this.model.get("fileId");
+    },
+    remove: function() {
       var self = this;
       $.ajax({
         url: API_URL + this.model.get("fileId"),

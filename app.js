@@ -33,7 +33,11 @@ if ('development' == app.get('env')) {
 store.configure(config);
 
 app.get('/', routes.index);
-app.get('/store', store.list);
+app.get('/files/?', store.list);
+app.post('/files/?', store.create);
+app.get('/files/:id', store.read);
+app.delete('/files/:id', store.delete);
+
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));

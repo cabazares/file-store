@@ -3,20 +3,41 @@ body {
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
-a {
-  color: #00B7FF;
-}
-
 #upload_form {
+  position: relative;
   float: left;
   margin: 10px;
-  border: 1px dashed #ccc;
   padding: 10px;
+}
+
+#upload_btn {
+  border: 2px dashed #ccc;
   border-radius: 5px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  text-align: center;
+  padding: 10px;
+  width: 250px;
+  height: 100px;
+  line-height: 100px;
+  background-color: #eef;
+}
+
+#upload_btn.dragging {
+  border: 1px dashed #ccf;
+  font-size: 18px;
+}
+
+
+#uploader {
+  opacity: 0;
+  height: 100px;
+  width: 250px;
 }
 
 #files_box {
-  margin: 10px;
+  margin: 10px 10px 10px 40px;
   float: left;
   padding: 0px;
 }

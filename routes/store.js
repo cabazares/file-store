@@ -81,10 +81,6 @@ exports.create = function(req, res) {
   form.on('file', function (name, file) {
     fileInfo = file;
   });
-  form.on('aborted', function() {
-    // TODO:
-    console.log("ABORTED");
-  });
   form.on('error', function(err) {
       handleError(err);
   });

@@ -49,6 +49,17 @@ body {
   line-height: 100px;
 }
 
+.cancel_upload {
+  float: right;
+  line-height: 2em;
+  cursor: pointer;
+}
+
+.cancel_upload:hover {
+  color: #3333AA;
+}
+
+
 .progress_bar_border {
   width: 100%;
   border: 1px solid #888;

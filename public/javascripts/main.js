@@ -60,8 +60,12 @@ jQuery(function($){
 
   var ListView = Backbone.View.extend({
     el: $('body'),
+    events: {
+      'click span.cancel_upload': 'cancelUpload',
+    },
     initialize: function(){
-      _.bindAll(this, 'retrieveAllFiles', 'addFile', 'appendItem');
+      _.bindAll(this, 'retrieveAllFiles', 'addFile', 'appendItem',
+                'cancelUpload');
 
       this.collection = new FileCollection();
       this.collection.bind('add', this.appendItem);
@@ -80,13 +84,21 @@ jQuery(function($){
           self.progressFill.css({
             'width': '0%'
           });
-          data.submit();
+          self.uploadRequest = data.submit();
         },
         progressall: function (e, data) {
           var progress = parseInt(data.loaded / data.total * 100, 10);
           self.progressFill.css({
             'width': progress + '%'
           });
+        },
+        fail: function (e, data) {
+          self.progressBox.hide();
+          self.uploadBtn.show();
+          if (data.errorThrown != "abort") {
+            console.log("Error uploading!");
+            console.log(data);
+          }
         },
         done: function (e, data) {
           self.progressBox.hide();
@@ -97,6 +109,11 @@ jQuery(function($){
 
       // load initial data
       this.retrieveAllFiles();
+    },
+    cancelUpload: function () {
+      if (this.uploadRequest && this.uploadRequest.abort) {
+        this.uploadRequest.abort();
+      }
     },
     retrieveAllFiles: function () {
       var self = this;

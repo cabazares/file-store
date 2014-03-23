@@ -12,9 +12,9 @@ var GROUP = "files";
 var s3;
 
 // convenience function to handle errors
-var handleError = function (err) {
+var handleError = function (res, err) {
   console.error("error response - " + err);
-  jsonResponse({"error": err});
+  jsonResponse(res, {"error": err});
 }
 
 // convenience function to respond with JSON
@@ -44,12 +44,11 @@ exports.configure = function(config) {
 /*
  * retrieve list of files
  */
-
 exports.list = function(req, res) {
   var files = [];
   rclient.lrange(GROUP, 0, -1, function(err, fileIds) {
     if (err) {
-      handleError(err);
+      handleError(res, err);
     }
     var multi = rclient.multi();
     fileIds.map(function (fileId) {
@@ -57,7 +56,7 @@ exports.list = function(req, res) {
     });
     multi.exec(function (err, replies) {
       if (err) {
-        handleError(err);
+        handleError(res, err);
       }
       replies.forEach(function (data, index) {
         files.push({
@@ -74,7 +73,6 @@ exports.list = function(req, res) {
 /*
  * create new file
  */
-
 exports.create = function(req, res) {
   var form = new formidable.IncomingForm();
   var fileInfo = {};
@@ -82,7 +80,7 @@ exports.create = function(req, res) {
     fileInfo = file;
   });
   form.on('error', function(err) {
-      handleError(err);
+      handleError(res, err);
   });
   form.on('end', function () {
     saveFile(res, fileInfo);
@@ -91,7 +89,7 @@ exports.create = function(req, res) {
 };
 
 /*
- * function to upload file to s3 and save to redis
+ * upload file to s3 and save to redis
  */
 var saveFile = function (res, fileInfo) {
   var fileName = fileInfo.name;
@@ -101,7 +99,7 @@ var saveFile = function (res, fileInfo) {
   rclient.incr(NEXT_ID);
   rclient.get(NEXT_ID, function(err, fileId) {
     if (err) {
-      handleError(err);
+      handleError(res, err);
     }
     var fileKey = toFileKey(fileId);
     // upload to s3
@@ -113,19 +111,19 @@ var saveFile = function (res, fileInfo) {
       ContentType: getContentTypeByFile(fileName)
     }, function(error, response) {
       if (error) {
-        handleError(error);
+        handleError(res, error);
       }
       // insert file to hash
       rclient.hmset([fileKey,
                      "filename", fileName,
                      "filesize", fileSize], function(err, replies) {
         if (err) {
-          handleError(err);
+          handleError(res, err);
         }
         // add file to list
         rclient.rpush(GROUP, fileKey, function(err, reply) {
           if (err) {
-            handleError(err);
+            handleError(res, err);
           }
           jsonResponse(res, {
             fileId: fileId,
@@ -159,13 +157,12 @@ function getContentTypeByFile(fileName) {
 /*
  * retrieve single file for download
  */
-
 exports.read = function(req, res) {
   var fileId = toFileKey(req.params.id);
   // retrieve filename
   rclient.hmget([fileId, "filename", "filesize"], function (err, fileInfo) {
     if (err) {
-      handleError(err);
+      handleError(res, err);
     }
     var fileName = fileInfo[0],
         fileSize = fileInfo[1]
@@ -185,13 +182,12 @@ exports.read = function(req, res) {
 /*
  * remove single file
  */
-
 exports.delete = function(req, res) {
   var fileId = toFileKey(req.params.id);
   // remove file
   rclient.hdel([fileId, "filename", "filesize"], function(err, replies) {
     if (err) {
-      handleError(err);
+      handleError(res, err);
     }
     // remove file from s3
     s3.deleteObject({
@@ -199,12 +195,12 @@ exports.delete = function(req, res) {
       Key: fileId,
     }, function(err, response) {
       if (err) {
-        handleError(err);
+        handleError(res, err);
       }
       // remove file from list
       rclient.lrem(GROUP, 0, fileId, function(err, reply) {
         if (err) {
-          handleError(err);
+          handleError(res, err);
         }
         res.send('');
       });

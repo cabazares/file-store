@@ -8,6 +8,10 @@ var NEXT_ID = "nextFileId";
 var FILES = "file";
 var GROUP = "files";
 
+// content haskKeys
+var NAME_KEY = "filename";
+var SIZE_KEY = "filesize";
+
 // amazon s3 object
 var s3;
 
@@ -52,7 +56,7 @@ exports.list = function(req, res) {
     }
     var multi = rclient.multi();
     fileIds.map(function (fileId) {
-      multi.hmget([fileId, "filename", "filesize"]);
+      multi.hmget([fileId, NAME_KEY, SIZE_KEY]);
     });
     multi.exec(function (err, replies) {
       if (err) {
@@ -97,16 +101,16 @@ var saveFile = function (res, fileInfo) {
   var fileBuffer = fs.readFileSync(fileInfo.path);
   // insert to redis
   rclient.incr(NEXT_ID);
-  rclient.get(NEXT_ID, function(err, fileId) {
+  rclient.get(NEXT_ID, function(err, id) {
     if (err) {
       handleError(res, err);
     }
-    var fileKey = toFileKey(fileId);
+    var fileId = toFileKey(id);
     // upload to s3
     s3.putObject({
       ACL: 'public-read',
       Bucket: settings.aws.bucketName,
-      Key: fileKey,
+      Key: fileId,
       Body: fileBuffer,
       ContentType: getContentTypeByFile(fileName)
     }, function(error, response) {
@@ -114,19 +118,19 @@ var saveFile = function (res, fileInfo) {
         handleError(res, error);
       }
       // insert file to hash
-      rclient.hmset([fileKey,
-                     "filename", fileName,
-                     "filesize", fileSize], function(err, replies) {
+      rclient.hmset([fileId,
+                     NAME_KEY, fileName,
+                     SIZE_KEY, fileSize], function(err, replies) {
         if (err) {
           handleError(res, err);
         }
         // add file to list
-        rclient.rpush(GROUP, fileKey, function(err, reply) {
+        rclient.rpush(GROUP, fileId, function(err, reply) {
           if (err) {
             handleError(res, err);
           }
           jsonResponse(res, {
-            fileId: fileId,
+            fileId: id,
             fileName: fileName,
             fileSize: fileSize
           });
@@ -160,7 +164,7 @@ function getContentTypeByFile(fileName) {
 exports.read = function(req, res) {
   var fileId = toFileKey(req.params.id);
   // retrieve filename
-  rclient.hmget([fileId, "filename", "filesize"], function (err, fileInfo) {
+  rclient.hmget([fileId, NAME_KEY, SIZE_KEY], function (err, fileInfo) {
     if (err) {
       handleError(res, err);
     }
@@ -185,7 +189,7 @@ exports.read = function(req, res) {
 exports.delete = function(req, res) {
   var fileId = toFileKey(req.params.id);
   // remove file
-  rclient.hdel([fileId, "filename", "filesize"], function(err, replies) {
+  rclient.hdel([fileId, NAME_KEY, SIZE_KEY], function(err, replies) {
     if (err) {
       handleError(res, err);
     }

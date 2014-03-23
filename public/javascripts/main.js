@@ -31,6 +31,7 @@ jQuery(function($){
                 '<div class="name"><%= fileName %></div>' +
                 '<div class="size"><%= fileSize %></div>' +
                 '<span class="remove">X</span>' +
+                '<div class="throbber"></div>' +
                 '</div>';
       var model = this.model;
       $(this.el).html(_.template(tpl, {
@@ -47,6 +48,7 @@ jQuery(function($){
     },
     remove: function() {
       var self = this;
+      $('.file_row', this.el).addClass('busy');
       $.ajax({
         url: API_URL + this.model.get("fileId"),
         type: 'DELETE'
@@ -65,15 +67,30 @@ jQuery(function($){
       this.collection.bind('add', this.appendItem);
 
       var self = this;
+
+      this.progressBox = $('#progress_bar_box');
+      this.progressFill = $('.progress_bar_fill', self.progressBox);
+      this.uploadBtn = $('#upload_btn');
+
       // initialize uploader
       $('#uploader').fileupload({
-        dataType: 'json',
+        add: function (e, data) {
+          self.progressBox.show();
+          self.uploadBtn.hide();
+          self.progressFill.css({
+            'width': '0%'
+          });
+          data.submit();
+        },
         progressall: function (e, data) {
-          // TODO: show progress
           var progress = parseInt(data.loaded / data.total * 100, 10);
-          console.log(progress);
+          self.progressFill.css({
+            'width': progress + '%'
+          });
         },
         done: function (e, data) {
+          self.progressBox.hide();
+          self.uploadBtn.show();
           self.addFile(data.result);
         }
       });

@@ -29,12 +29,76 @@ body {
   font-size: 18px;
 }
 
-
 #uploader {
   opacity: 0;
   height: 100px;
   width: 250px;
 }
+
+#progress_bar_box {
+  display: none;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  text-align: center;
+  padding: 10px;
+  width: 250px;
+  height: 100px;
+  line-height: 100px;
+}
+
+.progress_bar_border {
+  width: 100%;
+  border: 1px solid #888;
+  margin-top: 33px;
+  height: 30px;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.progress_bar_border .progress_bar_fill {
+  width: 0%;
+  height: 100%;
+  background-color: #34c2e3;
+  -webkit-background-size: 30px 30px;
+  -moz-background-size: 30px 30px;
+  background-size: 30px 30px;			
+	background-image: -webkit-gradient(linear, left top, right bottom,
+						color-stop(.25, rgba(255, 255, 255, .15)), color-stop(.25, transparent),
+						color-stop(.5, transparent), color-stop(.5, rgba(255, 255, 255, .15)),
+						color-stop(.75, rgba(255, 255, 255, .15)), color-stop(.75, transparent),
+						to(transparent));
+  background-image: -webkit-linear-gradient(135deg, rgba(255, 255, 255, .15) 25%, transparent 25%,
+                      transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%,
+                      transparent 75%, transparent);
+  background-image: -moz-linear-gradient(135deg, rgba(255, 255, 255, .15) 25%, transparent 25%,
+                      transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%,
+                      transparent 75%, transparent);
+  background-image: -ms-linear-gradient(135deg, rgba(255, 255, 255, .15) 25%, transparent 25%,
+                      transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%,
+                      transparent 75%, transparent);
+  background-image: -o-linear-gradient(135deg, rgba(255, 255, 255, .15) 25%, transparent 25%,
+                      transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%,
+                      transparent 75%, transparent);
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, .15) 25%, transparent 25%,
+                      transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%,
+                      transparent 75%, transparent);            
+  
+  -webkit-animation: animate-stripes 3s linear infinite;
+  -moz-animation: animate-stripes 3s linear infinite;       		
+}
+        
+@-webkit-keyframes animate-stripes { 
+  0% {background-position: 0 0;} 100% {background-position: 60px 0;}
+}
+
+
+@-moz-keyframes animate-stripes {
+  0% {background-position: 0 0;} 100% {background-position: 60px 0;}
+}
+
 
 #files_box {
   margin: 10px 10px 10px 40px;
@@ -62,11 +126,17 @@ body {
 }
 
 #files_list .file_row .name {
-cursor:pointer;
+  cursor: pointer;
+  -o-text-overflow: ellipsis;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 300px;
+  margin-right: 20px;
 }
 
 #files_list .file_row .name:hover {
-color: #3333AA;
+  color: #3333AA;
 }
 
 #files_list .file_row .size {
@@ -82,4 +152,21 @@ color: #3333AA;
   padding: 5px;
 }
 
+#files_list .file_row .throbber {
+  display: none;
+  background-image: url('/images/loading.gif');
+  background-repeat: no-repeat;
+  background-position: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #eee;
+  border-radius: 5px;
+  opacity: 0.8;
+}
 
+#files_list .file_row.busy .throbber {
+  display: block;
+}
